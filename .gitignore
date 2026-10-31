@@ -1,0 +1,34 @@
+.venv/
+.pytest_cache/
+__pycache__/
+build/
+dist/
+*.egg-info/
+*.pyc
+*.pyo
+.idea/
+.vscode/
+.git/
+.DS_Store
+
+# ==================== 环境变量与密钥 ====================
+# 真实配置只放本地 .env，仓库里只提交 .env.example
+.env
+.env.*
+!.env.example
+
+# ==================== 日志与运行产物 ====================
+logs/
+*.log
+tests/eval_results.json
+
+# ==================== 本地数据库 / 容器数据卷 ====================
+docker/mysql_data/
+docker/volumes*/
+
+# ==================== 证书与数据库文件 ====================
+*.pem
+*.ibd
+*.ibdata1
+binlog.*
+dump.rdb

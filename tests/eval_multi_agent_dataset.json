@@ -1,0 +1,84 @@
+{
+  "description": "SmartVoyage 多智能体小样本评估集：覆盖路由、代理选择、事实引用、格式合规与小红书文案的层级协作。",
+  "version": "1.0",
+  "cases": [
+    {
+      "id": "train_price",
+      "category": "single_agent",
+      "query": "2026年11月1日深圳到成都最便宜的火车票是哪一趟？多少钱？",
+      "expected_intents": ["train"],
+      "expected_agents": ["TicketAssistant"],
+      "required_keywords": ["D1876", "660"],
+      "forbidden_keywords": ["暂不支持", "处理失败"],
+      "required_sections": []
+    },
+    {
+      "id": "flight_price",
+      "category": "single_agent",
+      "query": "2026年11月1日深圳到成都最便宜的机票是哪一趟？",
+      "expected_intents": ["flight"],
+      "expected_agents": ["TicketAssistant"],
+      "required_keywords": ["ZH9105", "650"],
+      "forbidden_keywords": ["暂不支持", "处理失败"],
+      "required_sections": []
+    },
+    {
+      "id": "concert_price",
+      "category": "single_agent",
+      "query": "2026年11月14日深圳有什么演唱会？薛之谦的票价是多少？",
+      "expected_intents": ["concert"],
+      "expected_agents": ["TicketAssistant"],
+      "required_keywords": ["薛之谦", "深圳湾体育中心体育场", "1980"],
+      "forbidden_keywords": ["暂不支持", "处理失败"],
+      "required_sections": []
+    },
+    {
+      "id": "insurance_price",
+      "category": "single_agent",
+      "query": "有没有包含航班延误的旅行保险？最便宜的是哪一款？",
+      "expected_intents": ["insurance"],
+      "expected_agents": ["TripAssistant"],
+      "required_keywords": ["人保", "55"],
+      "forbidden_keywords": ["暂不支持", "处理失败"],
+      "required_sections": []
+    },
+    {
+      "id": "multi_intent_flight_weather",
+      "category": "multi_agent",
+      "query": "查一下2026年11月1日深圳到成都最便宜的机票，再看看成都2026年11月1日的天气。",
+      "expected_intents": ["flight", "weather"],
+      "expected_agents": ["TicketAssistant", "WeatherQueryAssistant"],
+      "required_keywords": ["ZH9105", "650"],
+      "forbidden_keywords": ["暂不支持", "处理失败"],
+      "required_sections": []
+    },
+    {
+      "id": "xiaohongshu_note",
+      "category": "hierarchical_agent",
+      "query": "帮我写一篇小红书种草文：2026年11月1日从深圳坐高铁去成都，玩4天，喜欢美食和citywalk，要真实一点，带真实票价和花费清单。",
+      "expected_intents": ["copywriting"],
+      "expected_agents": ["CopywritingAssistant"],
+      "required_keywords": ["深圳", "成都", "二等座"],
+      "required_keyword_groups": [
+        ["D1876", "G2962", "G2964", "G2966", "G2968"],
+        ["660", "770"]
+      ],
+      "grounding_keyword_groups": [
+        ["D1876", "G2962", "G2964", "G2966", "G2968"]
+      ],
+      "forbidden_keywords": ["暂不支持", "处理失败", "工具显示", "由系统检索真实实拍图"],
+      "required_sections": ["【标题备选】", "【正文】", "【花费清单】", "【景点实拍】", "【配图建议】", "【标签】", "【数据说明】"],
+      "required_patterns": ["!\\[[^\\]]+\\]\\(https?://[^\\s)]+\\)"]
+    },
+    {
+      "id": "copywriting_missing_info",
+      "category": "hierarchical_agent",
+      "query": "帮我写一篇去成都的小红书种草文。",
+      "expected_intents": ["copywriting"],
+      "expected_agents": ["CopywritingAssistant"],
+      "required_keywords": ["需要补充信息"],
+      "forbidden_keywords": ["Day 1", "合计：约", "处理失败"],
+      "required_sections": []
+    }
+  ]
+}

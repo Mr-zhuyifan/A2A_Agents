@@ -1,0 +1,299 @@
+version: '3.8'
+
+services:
+  # ==================== API 主服务 ====================
+  api-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smartvoyage-api
+    ports:
+      - "8085:8085"
+    environment:
+      # 大模型配置
+      - API_KEY=${API_KEY}
+      - BASE_URL=${BASE_URL}
+      - LLM_MODEL=${LLM_MODEL:-qwen3.5-flash}
+      - LLM_TEMPERATURE=${LLM_TEMPERATURE:-0.1}
+      - LLM_STREAMING=${LLM_STREAMING:-True}
+      - LLM_ENABLE_THINKING=${LLM_ENABLE_THINKING:-False}
+      # MySQL 数据库配置
+      - MYSQL_HOST=${MYSQL_HOST:-host.docker.internal}
+      - MYSQL_PORT=${MYSQL_PORT:-3306}
+      - MYSQL_USER=${MYSQL_USER:-root}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-root}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-travel_rag}
+      # Milvus 向量数据库配置
+      - MILVUS_HOST=${MILVUS_HOST:-host.docker.internal}
+      - MILVUS_PORT=${MILVUS_PORT:-19530}
+      # Docker 环境标识
+      - RUNNING_IN_DOCKER=true
+      - PYTHONUNBUFFERED=1
+      # A2A 服务器地址（Docker 网络中使用服务名称）
+      - WEATHER_A2A_URL=http://weather-a2a:5005
+      - TICKET_A2A_URL=http://ticket-a2a:5006
+      - TRIP_A2A_URL=http://trip-a2a:5007
+      - COPYWRITING_A2A_URL=http://copywriting-a2a:5008
+    depends_on:
+      - ticket-a2a
+      - weather-a2a
+      - trip-a2a
+      - copywriting-a2a
+      - ticket-mcp
+      - weather-mcp
+      - trip-mcp
+    command: ["python", "api_server.py"]
+    networks:
+      - smartvoyage-network
+    restart: unless-stopped
+
+  # ==================== A2A 票务服务器 ====================
+  ticket-a2a:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smartvoyage-ticket-a2a
+    ports:
+      - "5006:5006"
+    environment:
+      # 大模型配置
+      - API_KEY=${API_KEY}
+      - BASE_URL=${BASE_URL}
+      - LLM_MODEL=${LLM_MODEL:-qwen3.5-flash}
+      - LLM_TEMPERATURE=${LLM_TEMPERATURE:-0.1}
+      - LLM_STREAMING=${LLM_STREAMING:-True}
+      - LLM_ENABLE_THINKING=${LLM_ENABLE_THINKING:-False}
+      # MySQL 数据库配置
+      - MYSQL_HOST=${MYSQL_HOST:-host.docker.internal}
+      - MYSQL_PORT=${MYSQL_PORT:-3306}
+      - MYSQL_USER=${MYSQL_USER:-root}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-root}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-travel_rag}
+      # Milvus 向量数据库配置
+      - MILVUS_HOST=${MILVUS_HOST:-host.docker.internal}
+      - MILVUS_PORT=${MILVUS_PORT:-19530}
+      # Docker 环境标识
+      - RUNNING_IN_DOCKER=true
+      - PYTHONUNBUFFERED=1
+      # MCP 服务器地址（Docker 网络中使用服务名称）
+      - TICKET_MCP_URL=http://ticket-mcp:8001/mcp
+    depends_on:
+      - ticket-mcp
+    command: ["python", "a2a_server/ticket_server.py"]
+    networks:
+      - smartvoyage-network
+    restart: unless-stopped
+
+  # ==================== A2A 天气服务器 ====================
+  weather-a2a:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smartvoyage-weather-a2a
+    ports:
+      - "5005:5005"
+    environment:
+      # 大模型配置
+      - API_KEY=${API_KEY}
+      - BASE_URL=${BASE_URL}
+      - LLM_MODEL=${LLM_MODEL:-qwen3.5-flash}
+      - LLM_TEMPERATURE=${LLM_TEMPERATURE:-0.1}
+      - LLM_STREAMING=${LLM_STREAMING:-True}
+      - LLM_ENABLE_THINKING=${LLM_ENABLE_THINKING:-False}
+      # MySQL 数据库配置
+      - MYSQL_HOST=${MYSQL_HOST:-host.docker.internal}
+      - MYSQL_PORT=${MYSQL_PORT:-3306}
+      - MYSQL_USER=${MYSQL_USER:-root}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-root}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-travel_rag}
+      # Milvus 向量数据库配置
+      - MILVUS_HOST=${MILVUS_HOST:-host.docker.internal}
+      - MILVUS_PORT=${MILVUS_PORT:-19530}
+      # Docker 环境标识
+      - RUNNING_IN_DOCKER=true
+      - PYTHONUNBUFFERED=1
+      # MCP 服务器地址（Docker 网络中使用服务名称）
+      - WEATHER_MCP_URL=http://weather-mcp:8002/mcp
+    depends_on:
+      - weather-mcp
+    command: ["python", "a2a_server/weather_server.py"]
+    networks:
+      - smartvoyage-network
+    restart: unless-stopped
+
+  # ==================== A2A 行程服务器 ====================
+  trip-a2a:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smartvoyage-trip-a2a
+    ports:
+      - "5007:5007"
+    environment:
+      # 大模型配置
+      - API_KEY=${API_KEY}
+      - BASE_URL=${BASE_URL}
+      - LLM_MODEL=${LLM_MODEL:-qwen3.5-flash}
+      - LLM_TEMPERATURE=${LLM_TEMPERATURE:-0.1}
+      - LLM_STREAMING=${LLM_STREAMING:-True}
+      - LLM_ENABLE_THINKING=${LLM_ENABLE_THINKING:-False}
+      # MySQL 数据库配置
+      - MYSQL_HOST=${MYSQL_HOST:-host.docker.internal}
+      - MYSQL_PORT=${MYSQL_PORT:-3306}
+      - MYSQL_USER=${MYSQL_USER:-root}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-root}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-travel_rag}
+      # Milvus 向量数据库配置
+      - MILVUS_HOST=${MILVUS_HOST:-host.docker.internal}
+      - MILVUS_PORT=${MILVUS_PORT:-19530}
+      # Docker 环境标识
+      - RUNNING_IN_DOCKER=true
+      - PYTHONUNBUFFERED=1
+      # MCP 服务器地址（Docker 网络中使用服务名称）
+      - TRIP_MCP_URL=http://trip-mcp:8003/mcp
+    depends_on:
+      - trip-mcp
+    command: ["python", "a2a_server/trip_server.py"]
+    networks:
+      - smartvoyage-network
+    restart: unless-stopped
+
+  # ==================== A2A 文案服务器 ====================
+  # 文案代理会作为 A2A 客户端继续调用票务、行程、天气代理
+  copywriting-a2a:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smartvoyage-copywriting-a2a
+    ports:
+      - "5008:5008"
+    environment:
+      # 大模型配置
+      - API_KEY=${API_KEY}
+      - BASE_URL=${BASE_URL}
+      - LLM_MODEL=${LLM_MODEL:-qwen3.5-flash}
+      - LLM_TEMPERATURE=${LLM_TEMPERATURE:-0.1}
+      - LLM_STREAMING=${LLM_STREAMING:-True}
+      - LLM_ENABLE_THINKING=${LLM_ENABLE_THINKING:-False}
+      # Docker 环境标识
+      - RUNNING_IN_DOCKER=true
+      - PYTHONUNBUFFERED=1
+      # 下游 A2A 代理地址
+      - WEATHER_A2A_URL=http://weather-a2a:5005
+      - TICKET_A2A_URL=http://ticket-a2a:5006
+      - TRIP_A2A_URL=http://trip-a2a:5007
+      # 景点实拍图 MCP
+      - IMAGE_MCP_URL=http://image-mcp:8004/mcp
+      - IMAGE_PROVIDER_ORDER=${IMAGE_PROVIDER_ORDER:-so360,bing}
+    depends_on:
+      - weather-a2a
+      - ticket-a2a
+      - trip-a2a
+      - image-mcp
+    command: ["python", "a2a_server/copywriting_server.py"]
+    networks:
+      - smartvoyage-network
+    restart: unless-stopped
+
+  # ==================== MCP 景点图片服务器 ====================
+  # 文案代理写完后调用它检索真实景点实拍图
+  image-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smartvoyage-image-mcp
+    ports:
+      - "8004:8004"
+    environment:
+      # 图源顺序：有 Key 时可改成 unsplash,pexels,pixabay；能访问开源图库时用 openverse,wikimedia
+      - IMAGE_PROVIDER_ORDER=${IMAGE_PROVIDER_ORDER:-so360,bing}
+      - UNSPLASH_ACCESS_KEY=${UNSPLASH_ACCESS_KEY:-}
+      - PEXELS_API_KEY=${PEXELS_API_KEY:-}
+      - PIXABAY_API_KEY=${PIXABAY_API_KEY:-}
+      - RUNNING_IN_DOCKER=true
+      - PYTHONUNBUFFERED=1
+    command: ["python", "mcp_server/mcp_image_server.py"]
+    networks:
+      - smartvoyage-network
+    restart: unless-stopped
+
+  # ==================== MCP 票务服务器 ====================
+  ticket-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smartvoyage-ticket-mcp
+    ports:
+      - "8001:8001"
+    environment:
+      # MySQL 数据库配置
+      - MYSQL_HOST=${MYSQL_HOST:-host.docker.internal}
+      - MYSQL_PORT=${MYSQL_PORT:-3306}
+      - MYSQL_USER=${MYSQL_USER:-root}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-root}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-travel_rag}
+      # Docker 环境标识
+      - RUNNING_IN_DOCKER=true
+      - PYTHONUNBUFFERED=1
+    command: ["python", "mcp_server/mcp_ticket_server.py"]
+    networks:
+      - smartvoyage-network
+    restart: unless-stopped
+
+  # ==================== MCP 天气服务器 ====================
+  weather-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smartvoyage-weather-mcp
+    ports:
+      - "8002:8002"
+    environment:
+      # MySQL 数据库配置
+      - MYSQL_HOST=${MYSQL_HOST:-host.docker.internal}
+      - MYSQL_PORT=${MYSQL_PORT:-3306}
+      - MYSQL_USER=${MYSQL_USER:-root}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-root}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-travel_rag}
+      # Docker 环境标识
+      - RUNNING_IN_DOCKER=true
+      - PYTHONUNBUFFERED=1
+      # 和风天气 Key（从 .env 注入，不写进代码）
+      - QWEATHER_MCP_API_KEY=${QWEATHER_MCP_API_KEY:-}
+      - QWEATHER_MCP_BASE_URL=${QWEATHER_MCP_BASE_URL:-}
+    command: ["python", "mcp_server/mcp_weather_server.py"]
+    networks:
+      - smartvoyage-network
+    restart: unless-stopped
+
+  # ==================== MCP 行程服务器 ====================
+  trip-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smartvoyage-trip-mcp
+    ports:
+      - "8003:8003"
+    environment:
+      # 大模型配置
+      - API_KEY=${API_KEY}
+      # MySQL 数据库配置
+      - MYSQL_HOST=${MYSQL_HOST:-host.docker.internal}
+      - MYSQL_PORT=${MYSQL_PORT:-3306}
+      - MYSQL_USER=${MYSQL_USER:-root}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-root}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-travel_rag}
+      # Milvus 向量数据库配置
+      - MILVUS_HOST=${MILVUS_HOST:-host.docker.internal}
+      - MILVUS_PORT=${MILVUS_PORT:-19530}
+      # Docker 环境标识
+      - RUNNING_IN_DOCKER=true
+      - PYTHONUNBUFFERED=1
+    command: ["python", "mcp_server/mcp_trip_server.py"]
+    networks:
+      - smartvoyage-network
+    restart: unless-stopped
+
+networks:
+  smartvoyage-network:
+    driver: bridge
